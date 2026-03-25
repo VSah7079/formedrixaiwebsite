@@ -22,6 +22,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -32,6 +33,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--color-bg-light);
   color: var(--color-text-dark);
+  overflow-x: hidden;
 }
 
 /* Scroll animations */

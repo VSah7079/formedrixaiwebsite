@@ -606,6 +606,7 @@ const navLinks: NavLink[] = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileOpenSection, setMobileOpenSection] = useState<string | null>(null)
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [langOpen, setLangOpen] = useState(false)
@@ -622,6 +623,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setMobileMenuOpen(false)
+    setMobileOpenSection(null)
     setShowSearch(false)
     setLangOpen(false)
     setOpenMegaMenu(null)
@@ -737,6 +739,11 @@ export default function Navbar() {
     },
   }
 
+  const getMobileSubmenuItems = (link: NavLink): SubMenuItem[] => {
+    if (!link.submenu) return []
+    return link.submenu.flatMap((entry) => ('items' in entry ? entry.items : [entry]))
+  }
+
   return (
     <motion.nav
       initial="hidden"
@@ -751,7 +758,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0 -ml-2 sm:-ml-6 lg:-ml-10">
+          <Link to="/" className="flex items-center shrink-0">
             <motion.img
               src={logo}
               alt="ForMedrix"
@@ -981,7 +988,7 @@ export default function Navbar() {
                 y: -3,
               }}
               whileTap={{ scale: 0.9 }}
-              className="p-1.5 sm:p-2 text-emerald-700 hover:text-emerald-600 transition-colors relative"
+              className="hidden sm:block p-1.5 sm:p-2 text-emerald-700 hover:text-emerald-600 transition-colors relative"
               title="Notifications"
             >
               <motion.svg
@@ -1234,13 +1241,74 @@ export default function Navbar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Link
-                      to={link.href}
-                      className="block px-3 py-2.5 text-sm font-medium text-emerald-900 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
+                    {link.submenu ? (
+                      <div className="rounded-lg border border-emerald-100">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMobileOpenSection((prev) => (prev === link.label ? null : link.label))
+                          }
+                          className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-emerald-900 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors"
+                        >
+                          <span>{link.label}</span>
+                          <svg
+                            className={`w-4 h-4 transition-transform duration-200 ${mobileOpenSection === link.label ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+
+                        <AnimatePresence>
+                          {mobileOpenSection === link.label && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="px-2 pb-2 overflow-hidden"
+                            >
+                              <Link
+                                to={link.href}
+                                className="block px-3 py-2 text-xs font-semibold text-emerald-700 hover:text-emerald-600 rounded-md"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                View {link.label}
+                              </Link>
+                              <div className="space-y-1">
+                                {getMobileSubmenuItems(link).map((item) => (
+                                  <Link
+                                    key={`${link.label}-${item.label}`}
+                                    to={item.href}
+                                    className="block px-3 py-2 rounded-md bg-slate-50 hover:bg-emerald-50"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                  >
+                                    <p className="text-sm font-medium text-emerald-900">{item.label}</p>
+                                    {item.description && (
+                                      <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{item.description}</p>
+                                    )}
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <Link
+                        to={link.href}
+                        className="block px-3 py-2.5 text-sm font-medium text-emerald-900 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </motion.div>
                 ))}
 
